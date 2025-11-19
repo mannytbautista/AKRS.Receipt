@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AKRS Services - Receipt Generator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 10px;
+      background: #f5f5f5;
+    }
+
+    h1, h2 {
+      margin: 0 0 8px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 650px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 10px 14px;
+      border-radius: 4px;
+      box-shadow: 0 0 4px rgba(0,0,0,0.15);
+    }
+
+    .flex {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .panel {
+      flex: 1 1 260px;
+      padding: 4px;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      margin-bottom: 3px;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 4px 6px;
+      margin-bottom: 6px;
+      font-size: 11px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 45px;
+    }
+
+    button {
+      padding: 6px 12px;
+      font-size: 11px;
+      cursor: pointer;
+      border-radius: 3px;
+      border: 1px solid #333;
+      background: #333;
+      color: #fff;
+      margin-right: 6px;
+    }
+
+    button.secondary {
+      background: #fff;
+      color: #333;
+    }
+
+    /* RECEIPT AREA */
+    .receipt-wrapper {
+      margin-top: 10px;
+      border: 1px solid #000;
+      padding: 8px 10px;
+      background: #fff;
+    }
+
+    .receipt-header {
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .receipt-header .business-name {
+      font-size: 13px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .receipt-header .business-address {
+      font-size: 10px;
+    }
+
+    .receipt-header .business-tax {
+      font-size: 9px;
+      margin-top: 1px;
+    }
+
+    .receipt-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 4px 0 6px;
+      border-top: 1px solid #000;
+      border-bottom: 1px solid #000;
+      padding: 3px 0;
+    }
+
+    .receipt-title-row .title {
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .receipt-title-row .or-no {
+      font-size: 10px;
+    }
+
+    .receipt-info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9.5px;
+      margin-bottom: 4px;
+    }
+
+    .receipt-info-row > div {
+      width: 50%;
+    }
+
+    .receipt-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4px;
+      margin-bottom: 4px;
+      font-size: 9.5px;
+    }
+
+    .receipt-table th,
+    .receipt-table td {
+      border: 1px solid #000;
+      padding: 3px;
+      vertical-align: top;
+    }
+
+    .receipt-table th {
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .right {
+      text-align: right;
+    }
+
+    .summary-table {
+      width: 60%;
+      float: right;
+      margin-top: 4px;
+      font-size: 9.5px;
+      border-collapse: collapse;
+    }
+
+    .summary-table th,
+    .summary-table td {
+      border: 1px solid #000;
+      padding: 3px;
+    }
+
+    .summary-table th {
+      text-align: left;
+      width: 60%;
+    }
+
+    .receipt-footer {
+      clear: both;
+      margin-top: 16px;
+      font-size: 9px;
+    }
+
+    .signature-blocks {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 18px;
+      font-size: 9px;
+    }
+
+    .signature-block {
+      width: 45%;
+      text-align: center;
+    }
+
+    .signature-line {
+      border-top: 1px solid #000;
+      margin-top: 18px;
+      padding-top: 2px;
+      font-size: 9px;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        box-shadow: none;
+        border-radius: 0;
+        margin: 0;
+        max-width: none;
+        padding: 5mm;
+      }
+      .no-print {
+        display: none !important;
+      }
+
+      @page {
+        size: A5 portrait;
+        margin: 5mm;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="no-print" style="font-size:14px;">AKRS Services - Receipt Generator</h1>
+
+    <div class="flex no-print">
+      <!-- LEFT: INPUT FORM -->
+      <div class="panel">
+        <h2 style="font-size:12px;">Receipt Details</h2>
+
+        <label>Receipt No. (OR No.)</label>
+        <input type="text" id="orNo" />
+
+        <label>Date</label>
+        <input type="date" id="date" />
+
+        <label>Customer Name</label>
+        <input type="text" id="customerName" />
+
+        <label>Customer Address</label>
+        <textarea id="customerAddress"></textarea>
+
+        <label>Customer TIN</label>
+        <input type="text" id="customerTin" />
+
+        <label>Service Description</label>
+        <textarea id="description"></textarea>
+
+        <label>Total Amount (VAT already included if VAT type)</label>
+        <input type="number" id="amount" step="0.01" />
+
+        <label>Tax Type</label>
+        <select id="taxType">
+          <option value="nonvat">Non-VAT</option>
+          <option value="vat">VAT-Registered (12% included)</option>
+        </select>
+
+        <label>Withholding Tax</label>
+        <select id="whtType">
+          <option value="none">None</option>
+          <option value="2">2%</option>
+          <option value="5">5%</option>
+        </select>
+
+        <label>Notes</label>
+        <textarea id="notes"></textarea>
+
+        <button onclick="generateReceipt()">Generate Receipt</button>
+        <button class="secondary" onclick="window.print()">Print</button>
+      </div>
+
+      <!-- RIGHT: BUSINESS SETTINGS -->
+      <div class="panel">
+        <h2 style="font-size:12px;">Business Info</h2>
+
+        <label>Business Name</label>
+        <input type="text" id="bizName" value="AKRS Services" />
+
+        <label>Business Address</label>
+        <textarea id="bizAddress">Block 24 Lot 56 FCD Ph2, Mabalacat City</textarea>
+
+        <label>TIN</label>
+        <input type="text" id="bizTin" />
+
+        <label>VAT/Non-VAT Line (hidden on print)</label>
+        <input type="text" id="bizVatLine" />
+      </div>
+    </div>
+
+    <!-- RECEIPT -->
+    <div class="receipt-wrapper">
+      <div class="receipt-header">
+        <div class="business-name" id="outBizName">AKRS Services</div>
+        <div class="business-address" id="outBizAddress"></div>
+        <div class="business-tax" id="outBizTin"></div>
+        <div class="business-tax print-hidden" id="outBizVatLine"></div>
+      </div>
+
+      <div class="receipt-title-row">
+        <div class="title">OFFICIAL RECEIPT</div>
+        <div class="or-no">OR No.: <span id="outOrNo"></span></div>
+      </div>
+
+      <div class="receipt-info-row">
+        <div>
+          <strong>Sold To:</strong> <span id="outCustomerName"></span><br/>
+          <strong>Address:</strong> <span id="outCustomerAddress"></span><br/>
+          <strong>TIN:</strong> <span id="outCustomerTin"></span>
+        </div>
+        <div style="text-align:right;">
+          <strong>Date:</strong> <span id="outDate"></span>
+        </div>
+      </div>
+
+      <table class="receipt-table">
+        <thead>
+        <tr>
+          <th>Particulars</th>
+          <th>Amount (PHP)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td id="outDescription"></td>
+          <td class="right" id="outAmount"></td>
+        </tr>
+        </tbody>
+      </table>
+
+      <table class="summary-table">
+        <tr>
+          <th id="sumAmountLabel">Amount</th>
+          <td class="right" id="sumAmount"></td>
+        </tr>
+        <tr id="rowVat" style="display:none;">
+          <th>VAT (12%)</th>
+          <td class="right" id="sumVat"></td>
+        </tr>
+        <tr>
+          <th><strong>Total Amount Due</strong></th>
+          <td class="right" id="sumTotal"></td>
+        </tr>
+        <tr id="rowWht" style="display:none;">
+          <th id="sumWhtLabel">Withholding Tax</th>
+          <td class="right" id="sumWht"></td>
+        </tr>
+        <tr id="rowNet" style="display:none;">
+          <th><strong>Net Amount Payable</strong></th>
+          <td class="right" id="sumNet"></td>
+        </tr>
+      </table>
+
+      <div class="receipt-footer">
+        <div id="outNotes"></div>
+
+        <!-- ✔ Completely removed the BIR regulations line -->
+        <p><em>This serves as your official receipt for the services rendered.</em></p>
+      </div>
+
+      <div class="signature-blocks">
+        <div class="signature-block"><div class="signature-line">Customer Signature</div></div>
+        <div class="signature-block"><div class="signature-line">Authorized Representative</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function formatNumber(num) {
+      return Number(num || 0).toLocaleString("en-PH", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function generateReceipt() {
+      const amount = parseFloat(document.getElementById("amount").value) || 0;
+
+      const taxType = document.getElementById("taxType").value;
+      const whtType = document.getElementById("whtType").value;
+
+      let vatable = amount;
+      let vat = 0;
+
+      if (taxType === "vat") {
+        vat = amount * 12 / 112;
+        vatable = amount - vat;
+
+        document.getElementById("rowVat").style.display = "";
+        document.getElementById("sumVat").textContent = formatNumber(vat);
+
+        document.getElementById("sumAmountLabel").textContent = "Vatable Sales";
+        document.getElementById("sumAmount").textContent = formatNumber(vatable);
+      } else {
+        document.getElementById("rowVat").style.display = "none";
+        document.getElementById("sumAmountLabel").textContent = "Total Sales";
+        document.getElementById("sumAmount").textContent = formatNumber(amount);
+      }
+
+      document.getElementById("sumTotal").textContent = formatNumber(amount);
+
+      // Withholding
+      let whtRate = 0;
+      if (whtType === "2") whtRate = 0.02;
+      if (whtType === "5") whtRate = 0.05;
+
+      if (whtRate > 0) {
+        const base = (taxType === "vat") ? vatable : amount;
+        const wht = base * whtRate;
+        const net = amount - wht;
+
+        document.getElementById("rowWht").style.display = "";
+        document.getElementById("rowNet").style.display = "";
+
+        document.getElementById("sumWhtLabel").textContent =
+          `Less: Withholding Tax (${whtRate * 100}%)`;
+
+        document.getElementById("sumWht").textContent = formatNumber(wht);
+        document.getElementById("sumNet").textContent = formatNumber(net);
+
+      } else {
+        document.getElementById("rowWht").style.display = "none";
+        document.getElementById("rowNet").style.display = "none";
+      }
+
+      // Text output
+      document.getElementById("outOrNo").textContent = document.getElementById("orNo").value;
+      document.getElementById("outBizName").textContent = document.getElementById("bizName").value;
+      document.getElementById("outBizAddress").textContent = document.getElementById("bizAddress").value;
+      document.getElementById("outBizTin").textContent = "TIN: " + document.getElementById("bizTin").value;
+      document.getElementById("outBizVatLine").textContent = document.getElementById("bizVatLine").value;
+
+      document.getElementById("outCustomerName").textContent = document.getElementById("customerName").value;
+      document.getElementById("outCustomerAddress").textContent = document.getElementById("customerAddress").value;
+      document.getElementById("outCustomerTin").textContent = document.getElementById("customerTin").value;
+
+      document.getElementById("outDescription").textContent = document.getElementById("description").value;
+      document.getElementById("outAmount").textContent = formatNumber(amount);
+
+      const date = document.getElementById("date").value;
+      if (date) {
+        const d = new Date(date);
+        document.getElementById("outDate").textContent = d.toLocaleDateString("en-PH", {
+          year: "numeric", month: "long", day: "numeric"
+        });
+      }
+
+      document.getElementById("outNotes").textContent = document.getElementById("notes").value;
+    }
+
+    window.onload = () => {
+      const t = new Date().toISOString().split("T")[0];
+      document.getElementById("date").value = t;
+      generateReceipt();
+    };
+  </script>
+</body>
+</html>
